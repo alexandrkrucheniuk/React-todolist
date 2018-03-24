@@ -181,12 +181,59 @@ export default class Scheduler extends Component {
             });
     };
 
+    _updateMessage = (id, message, favorite, completed, callback) => {
+        const { api, token } = this.context;
+
+        console.log(id);
+        fetch(api, {
+            method:  'POST',
+            headers: {
+                'Content-Type':  'application/json',
+                'Authorization': token,
+            },
+            body: JSON.stringify({
+                message,
+                favorite,
+                id,
+                completed,
+            }),
+        })
+            .then((response) => {
+                if (response.status > 299) {
+                    throw new Error(`Error with status ${response.status}`);
+                }
+
+                return response.json();
+            }).then(({ data }) => {
+                console.log(data);
+
+
+                this.setState(({ todoList }) => ({
+                    todoList: todoList.map((task) => {
+                        if (task.id === id) {
+                            return data;
+                        }
+
+                        return task;
+
+                    }),
+                }));
+
+                callback();
+
+            }).catch((error) => {
+                console.error(error);
+            });
+    }
+
 
     _deleteTask = (id) => {
 
         const { api, token } = this.context;
 
         console.log(id);
+
+        console.log(this.state.todoList);
         fetch(`${api}/${id}`, {
             method:  'DELETE',
             headers: {
@@ -194,11 +241,13 @@ export default class Scheduler extends Component {
                 'Authorization': token,
             },
         })
-            .then((response) => response.text()).then(() => {
+            .then((response) => response.text()).then((data) => {
+                console.log(data);
                 this.setState(({ todoList }) => ({
                     todoList: [...todoList.filter((task) => task.id !==id)],
                 }));
 
+                console.log(this.state.todoList);
 
             }).catch((error) => {
                 console.error(error);
@@ -216,6 +265,7 @@ export default class Scheduler extends Component {
                 key = { task.id }
                 task = { task.id }
                 updateFavorite = { this._updateFavorite }
+                updateMessage = { this._updateMessage }
                 updateTask = { this._updateComplete }
                 { ...task }
 
