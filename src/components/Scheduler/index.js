@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { string } from 'prop-types';
 import Styles from './styles';
-
+import Checkbox from '../../theme/assets/Checkbox';
 import Task from '../Task';
 
 export default class Scheduler extends Component {
@@ -14,8 +14,10 @@ export default class Scheduler extends Component {
     };
 
     state = {
-        message:  '',
-        todoList: [],
+        message:       '',
+        todoList:      [],
+        search:        '',
+        markAllAsDone: false,
     };
 
     componentDidMount () {
@@ -40,10 +42,7 @@ export default class Scheduler extends Component {
 
                 return response.json();
             }).then(({ data }) => {
-
-                this.setState(() => ({
-                    todoList: data,
-                }));
+            this._filterToDo([...data]);
             }).catch((error) => {
                 console.error(error);
             });
@@ -63,7 +62,7 @@ export default class Scheduler extends Component {
         if (!boolean) {
             e.preventDefault();
         }
-        const { message } = this.state;
+        const { message, todoList } = this.state;
         const { api, token } = this.context;
 
         if (message && message.length > 0) {
@@ -86,10 +85,13 @@ export default class Scheduler extends Component {
                     return response.json();
                 }).then(({ data }) => {
 
-
-                    this.setState(({ todoList }) => ({
-                        todoList: [data, ...todoList],
+                    this.setState(() => ({
+                        message: ''
                     }));
+
+                    this._filterToDo([data, ...todoList]);
+
+
                 }).catch((error) => {
                     console.error(error);
                 });
@@ -97,11 +99,11 @@ export default class Scheduler extends Component {
     };
 
 
-    _updateComplete =(id, message, favorite, completed) => {
+    _updateComplete = (id, message, favorite, completed) => {
 
         const { api, token } = this.context;
+        const { todoList } = this.state;
 
-        console.log(id);
         fetch(api, {
             method:  'POST',
             headers: {
@@ -123,15 +125,8 @@ export default class Scheduler extends Component {
                 return response.json();
             }).then(({ data }) => {
 
-                if (completed) {
-                    this.setState(({ todoList }) => ({
-                        todoList: [data, ...todoList.filter((task) => task.id !==id)],
-                    }));
-                } else {
-                    this.setState(({ todoList }) => ({
-                        todoList: [...todoList.filter((task) => task.id !==id), data],
-                    }));
-                }
+
+                this._filterToDo([data, ...todoList.filter((task) => task.id !== id)]);
 
 
             }).catch((error) => {
@@ -139,11 +134,27 @@ export default class Scheduler extends Component {
             });
     }
 
-    _updateFavorite =(id, message, favorite, completed) => {
+    _filterToDo = (todoList) => {
+
+        const todoListFav = todoList.filter((task) => task.favorite);
+        const todoListFavDone = todoListFav.filter((task) => task.completed);
+        const todoListFavNotDone = todoListFav.filter((task) => !task.completed);
+
+        const todoListNotFav = todoList.filter((task) => !task.favorite);
+        const todoListNotFavDone = todoListNotFav.filter((task) => task.completed);
+        const todoListNotFavNotDone = todoListNotFav.filter((task) => !task.completed);
+
+
+        this.setState(() => ({
+            todoList: [...todoListFavNotDone, ...todoListFavDone, ...todoListNotFavNotDone, ...todoListNotFavDone],
+        }));
+    };
+
+    _updateFavorite = (id, message, favorite, completed) => {
 
         const { api, token } = this.context;
+        const { todoList } = this.state;
 
-        console.log(id);
         fetch(api, {
             method:  'POST',
             headers: {
@@ -165,26 +176,16 @@ export default class Scheduler extends Component {
                 return response.json();
             }).then(({ data }) => {
 
-                if (!favorite) {
-                    this.setState(({ todoList }) => ({
-                        todoList: [data, ...todoList.filter((task) => task.id !==id)],
-                    }));
-                } else {
-                    this.setState(({ todoList }) => ({
-                        todoList: [...todoList.filter((task) => task.id !==id), data],
-                    }));
-                }
-
+            this._filterToDo([data, ...todoList.filter((task) => task.id !== id)]);
 
             }).catch((error) => {
                 console.error(error);
             });
     };
 
-    _updateMessage = (id, message, favorite, completed, callback) => {
+    _updateMessage = (id, message, favorite, completed) => {
         const { api, token } = this.context;
 
-        console.log(id);
         fetch(api, {
             method:  'POST',
             headers: {
@@ -205,7 +206,6 @@ export default class Scheduler extends Component {
 
                 return response.json();
             }).then(({ data }) => {
-                console.log(data);
 
 
                 this.setState(({ todoList }) => ({
@@ -218,22 +218,15 @@ export default class Scheduler extends Component {
 
                     }),
                 }));
-
-                callback();
-
             }).catch((error) => {
                 console.error(error);
             });
     }
 
-
     _deleteTask = (id) => {
 
         const { api, token } = this.context;
 
-        console.log(id);
-
-        console.log(this.state.todoList);
         fetch(`${api}/${id}`, {
             method:  'DELETE',
             headers: {
@@ -241,24 +234,84 @@ export default class Scheduler extends Component {
                 'Authorization': token,
             },
         })
-            .then((response) => response.text()).then((data) => {
-                console.log(data);
-                this.setState(({ todoList }) => ({
-                    todoList: [...todoList.filter((task) => task.id !==id)],
+            .then((response) => response).then((date) => {
+            console.log(date);
+            this.setState(({ todoList }) => ({
+                    todoList: [...todoList.filter((task) => task.id !== id)],
                 }));
-
-                console.log(this.state.todoList);
-
             }).catch((error) => {
                 console.error(error);
             });
     };
+
+    _handleSearch = ({ target }) => {
+        this.setState(() => ({
+            search: target.value,
+        }));
+    };
+
+    _handleMarkAllAsDone = () => {
+        this.setState(() => ({
+            markAllAsDone: true,
+        }));
+        const { todoList } = this.state;
+
+        const { api, token } = this.context;
+
+        todoList.forEach((task) => {
+
+
+            fetch(api, {
+                method:  'POST',
+                headers: {
+                    'Content-Type':  'application/json',
+                    'Authorization': token,
+                },
+                body: JSON.stringify({
+                    message:   task.message,
+                    favorite:  task.favorite,
+                    id:        task.id,
+                    completed: true,
+                }),
+            })
+                .then((response) => {
+                    if (response.status > 299) {
+                        throw new Error(`Error with status ${response.status}`);
+                    }
+
+                    return response.json();
+                }).then(({ data }) => {
+                    console.log(data);
+
+                }).catch((error) => {
+                    console.error(error);
+                });
+        });
+        this.setState(() => ({
+            todoList: [...todoList.map((task) => ({
+                message:   task.message,
+                id:        task.id,
+                favorite:  task.favorite,
+                completed: true,
+                created:   task.created,
+            }))],
+        }));
+
+        setTimeout(() => {
+            this.setState(() => ({
+                markAllAsDone: false,
+            }));
+        }, 1000);
+
+
+    };
+
     render () {
 
-        const { message, todoList } = this.state;
+        const { message, todoList, search, markAllAsDone } = this.state;
 
-
-        const taskElement = todoList.map((task) => (
+        const filteredToDoList = search !== '' ? todoList.filter((task) => task.message.startsWith(search)) : todoList;
+        const taskElement = filteredToDoList.map((task) => (
 
             <Task
                 deleteTask = { this._deleteTask }
@@ -270,7 +323,6 @@ export default class Scheduler extends Component {
                 { ...task }
 
             />
-
         ));
 
         return (
@@ -278,7 +330,7 @@ export default class Scheduler extends Component {
                 <main>
                     <header>
                         <h1>To do list</h1>
-                        <input placeholder = 'Search' type = 'search' />
+                        <input placeholder = 'Search' type = 'text' value = { search } onChange = { this._handleSearch } />
                     </header>
                     <section>
                         <form>
@@ -289,8 +341,21 @@ export default class Scheduler extends Component {
                             <button onClick = { this._handleSubmitForm }>Create task</button>
                         </form>
                     </section>
+                    <ul>
+                        {taskElement}
+                    </ul>
+                    <footer>
 
-                    {taskElement}
+                        <span>
+                            <Checkbox
+                                checked = { markAllAsDone }
+                                color1 = { '#000' }
+                                color2 = { '#fff' }
+                                onClick = { this._handleMarkAllAsDone }
+                            />
+                            <code> Mark all as done</code>
+                        </span>
+                    </footer>
                 </main>
 
             </div>

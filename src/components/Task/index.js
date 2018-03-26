@@ -51,9 +51,16 @@ export default class Task extends Component {
     };
 
     _handleEditBtn = () => {
+        const { editedMessage } = this.state;
+        const { id, favorite, completed, updateMessage, message } = this.props;
+
         this.setState(({ editable }) => ({
             editable: !editable,
         }));
+
+        if (editedMessage !== message) {
+            updateMessage(id, editedMessage, favorite, completed);
+        }
     }
     _handleEditInput = ({ target }) => {
         const editValue = target.value;
@@ -71,9 +78,10 @@ export default class Task extends Component {
         const { id, favorite, completed, updateMessage, message } = this.props;
 
         if (event.key === 'Enter') {
-            updateMessage(id, this.state.editedMessage, favorite, completed, () => {
-                this._handleEditBtn();
-            });
+            updateMessage(id, this.state.editedMessage, favorite, completed);
+            this.setState(() => ({
+                editable: false,
+            }));
         } else if (event.key === 'Escape') {
             this.setState(() => ({
                 editedMessage: message,
@@ -88,9 +96,7 @@ export default class Task extends Component {
 
         const { message, favorite, completed } = this.props;
 
-        console.log(this.state.editable);
-
-        const messageBox = this.state.editable ?
+        const messageBox = this.state.editable && !completed ?
             (<input placeholder = { message } value = { this.state.editedMessage } onChange = { this._handleEditInput } onKeyDown = { this._handleEditInputEnterPress } />)
             : (<span>{message}</span>);
 
@@ -107,14 +113,14 @@ export default class Task extends Component {
                     <div
                         style = { {
                             flex:   '2',
-                            border: this.state.editable ? '1px dashed #3B8EF3' : 'none',
+                            border: this.state.editable && !completed ? '1px dashed #3B8EF3' : 'none',
                         } }>
                         {messageBox}
                     </div>
 
                     <div style = { { display: 'flex', justifyContent: 'space-between' } }>
                         <StartIcon checked = { favorite } color1 = { '#ffd700' } onClick = { this._handleFavoriteBtn } />
-                        <Edit color1 = { '#3B8EF3' } onClick = { this._handleEditBtn } />
+                        <Edit color1 = { !completed ? '#3B8EF3' : '#FF0000' } onClick = { this._handleEditBtn } />
                         <DeleteIcon
                             onClick = { this._handleDeleteBtn }
                         />
