@@ -146,7 +146,7 @@ export default class Scheduler extends Component {
 
 
         this.setState(() => ({
-            todoList: [...todoListFavNotDone, ...todoListFavDone, ...todoListNotFavNotDone, ...todoListNotFavDone],
+            todoList: [...todoListFavNotDone, ...todoListNotFavNotDone,...todoListFavDone, ...todoListNotFavDone],
         }));
     };
 
