@@ -3,6 +3,7 @@ import { string } from 'prop-types';
 import Styles from './styles.scss';
 import Checkbox from '../../theme/assets/Checkbox';
 import Task from '../Task';
+import FlipMove from 'react-flip-move';
 
 export default class Scheduler extends Component {
 
@@ -146,7 +147,7 @@ export default class Scheduler extends Component {
 
 
         this.setState(() => ({
-            todoList: [...todoListFavNotDone, ...todoListNotFavNotDone,...todoListFavDone, ...todoListNotFavDone],
+            todoList: [...todoListFavNotDone, ...todoListNotFavNotDone, ...todoListFavDone, ...todoListNotFavDone],
         }));
     };
 
@@ -312,17 +313,39 @@ export default class Scheduler extends Component {
 
         const filteredToDoList = search !== '' ? todoList.filter((task) => task.message.startsWith(search)) : todoList;
         const taskElement = filteredToDoList.map((task) => (
-
-            <Task
-                deleteTask = { this._deleteTask }
-                key = { task.id }
-                task = { task.id }
-                updateFavorite = { this._updateFavorite }
-                updateMessage = { this._updateMessage }
-                updateTask = { this._updateComplete }
-                { ...task }
-
-            />
+            <FlipMove
+				appearAnimation="accordionVertical"
+				enterAnimation = { {
+                    from: {
+                        transform: 'rotateX(180deg)',
+                        opacity:   0.1,
+                    },
+                    to: {
+                        transform: '',
+                    },
+                } }
+				key = { task.id }
+                leaveAnimation = { {
+                    from: {
+                        transform: '',
+                    },
+                    to: {
+                        transform: 'rotateX(-120deg)',
+                        opacity:   0.1,
+                    },
+                } }
+                staggerDelayBy = { 150 }
+                typeName = 'div'>
+                <Task
+                    deleteTask = { this._deleteTask }
+                    key = { task.id }
+                    task = { task.id }
+                    updateFavorite = { this._updateFavorite }
+                    updateMessage = { this._updateMessage }
+                    updateTask = { this._updateComplete }
+                    { ...task }
+                />
+            </FlipMove>
         ));
 
         return (
