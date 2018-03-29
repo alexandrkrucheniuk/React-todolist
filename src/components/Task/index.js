@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { string, func, bool } from 'prop-types';
-import Styles from './styles';
-
+import Styles from './styles.scss';
 import Checkbox from '../../theme/assets/Checkbox';
 import DeleteIcon from '../../theme/assets/Delete';
 import StartIcon from '../../theme/assets/Star';
@@ -29,7 +28,7 @@ export default class Task extends Component {
     state = {
         editable:      false,
         editedMessage: this.props.message,
-    }
+    };
 
     _handleCheckboxClick = () => {
         const { id, message, favorite, completed, updateTask } = this.props;
@@ -61,7 +60,7 @@ export default class Task extends Component {
         if (editedMessage !== message) {
             updateMessage(id, editedMessage, favorite, completed);
         }
-    }
+    };
     _handleEditInput = ({ target }) => {
         const editValue = target.value;
 

@@ -21,10 +21,6 @@ export default class App extends Component {
         firstName: string.isRequired,
         lastName:  string.isRequired,
 
-    }
-
-    state = {
-        tasks: [],
     };
 
     getChildContext () {

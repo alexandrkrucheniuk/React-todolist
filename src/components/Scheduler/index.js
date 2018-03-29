@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { string } from 'prop-types';
-import Styles from './styles';
+import Styles from './styles.scss';
 import Checkbox from '../../theme/assets/Checkbox';
 import Task from '../Task';
 
@@ -42,7 +42,7 @@ export default class Scheduler extends Component {
 
                 return response.json();
             }).then(({ data }) => {
-            this._filterToDo([...data]);
+                this._filterToDo([...data]);
             }).catch((error) => {
                 console.error(error);
             });
@@ -57,7 +57,7 @@ export default class Scheduler extends Component {
         if (event.key === 'Enter') {
             this._handleSubmitForm(this, true);
         }
-    }
+    };
     _handleSubmitForm = (e, boolean) => {
         if (!boolean) {
             e.preventDefault();
@@ -86,7 +86,7 @@ export default class Scheduler extends Component {
                 }).then(({ data }) => {
 
                     this.setState(() => ({
-                        message: ''
+                        message: '',
                     }));
 
                     this._filterToDo([data, ...todoList]);
@@ -132,7 +132,7 @@ export default class Scheduler extends Component {
             }).catch((error) => {
                 console.error(error);
             });
-    }
+    };
 
     _filterToDo = (todoList) => {
 
@@ -176,7 +176,7 @@ export default class Scheduler extends Component {
                 return response.json();
             }).then(({ data }) => {
 
-            this._filterToDo([data, ...todoList.filter((task) => task.id !== id)]);
+                this._filterToDo([data, ...todoList.filter((task) => task.id !== id)]);
 
             }).catch((error) => {
                 console.error(error);
@@ -221,7 +221,7 @@ export default class Scheduler extends Component {
             }).catch((error) => {
                 console.error(error);
             });
-    }
+    };
 
     _deleteTask = (id) => {
 
@@ -235,8 +235,8 @@ export default class Scheduler extends Component {
             },
         })
             .then((response) => response).then((date) => {
-            console.log(date);
-            this.setState(({ todoList }) => ({
+                console.log(date);
+                this.setState(({ todoList }) => ({
                     todoList: [...todoList.filter((task) => task.id !== id)],
                 }));
             }).catch((error) => {
